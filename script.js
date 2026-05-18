@@ -936,6 +936,7 @@ function buildApplicationPayload(factions, roleIds) {
   return {
     discordUsername: clean(formData.get("discordUsername")),
     steamLink: clean(formData.get("steamLink")),
+    knownNames: clean(formData.get("knownNames")),
     wgRanks: clean(formData.get("wgRanks")),
     noxGenesisRanks: clean(formData.get("noxGenesisRanks")),
     rpExperience: clean(formData.get("rpExperience")),
