@@ -737,14 +737,17 @@ function renderApplicationRoles() {
 
 function roleGroupTemplate(group, selectedRoleIds) {
   return `
-    <fieldset class="field role-group">
-      <legend>${escapeHtml(group.title)}</legend>
+    <fieldset class="field role-group role-group-${group.faction} role-group-${group.kind}">
+      <legend>
+        <span>${escapeHtml(group.title)}</span>
+        <small>${escapeHtml(group.caption)}</small>
+      </legend>
       <div class="role-choice-grid">
         ${group.options
           .map((option) => {
             const checked = selectedRoleIds.includes(option.id) ? "checked" : "";
             return `
-              <label class="role-choice">
+              <label class="role-choice role-choice-${option.faction}">
                 <input type="checkbox" name="roles" value="${option.id}" ${checked} />
                 <span>${escapeHtml(option.label)}</span>
                 <small>${escapeHtml(option.detail)}</small>
@@ -779,24 +782,17 @@ function roleQuestionTemplate(roleOption, answers = {}) {
 
 function applicationRoleGroups() {
   return Object.entries(factionData).flatMap(([factionKey, faction]) => {
-    const coreRoles = faction.factionRoles.slice(2, 5).map((item) => ({
+    const seniorRole = faction.factionRoles.slice(4, 5).map((item) => ({
       id: roleId(factionKey, "core", item.name),
       label: item.name,
-      detail: "Core faction rank",
+      detail: factionKey === "jedi" ? "Senior Jedi rank" : "Senior Sith rank",
       faction: factionKey
     }));
 
     const commandRoles = faction.factionRoles.filter((item) => item.duties).map((item) => ({
       id: roleId(factionKey, "command", item.name),
       label: item.name,
-      detail: "Priority command role",
-      faction: factionKey
-    }));
-
-    const subfactions = faction.subfactions.map((item) => ({
-      id: roleId(factionKey, "subfaction", item.name),
-      label: item.name,
-      detail: "Subfaction member",
+      detail: item.priority ? "Priority command role" : "Command role",
       faction: factionKey
     }));
 
@@ -811,10 +807,27 @@ function applicationRoleGroups() {
     });
 
     return [
-      { faction: factionKey, title: `${faction.name} ranks`, options: coreRoles },
-      { faction: factionKey, title: `${faction.name} command`, options: commandRoles },
-      { faction: factionKey, title: `${faction.name} subfactions`, options: subfactions },
-      { faction: factionKey, title: `${faction.name} subfaction leads`, options: sflRoles }
+      {
+        faction: factionKey,
+        kind: "senior",
+        title: `${faction.name} senior rank`,
+        caption: factionKey === "jedi" ? "Master only from the core Jedi ladder." : "Darth only from the core Sith ladder.",
+        options: seniorRole
+      },
+      {
+        faction: factionKey,
+        kind: "sfl",
+        title: `${faction.name} subfaction leads`,
+        caption: "SFL positions for specialist branches.",
+        options: sflRoles
+      },
+      {
+        faction: factionKey,
+        kind: "command",
+        title: `${faction.name} council and command`,
+        caption: "Council, high command, and faction-leading roles.",
+        options: commandRoles
+      }
     ];
   });
 }

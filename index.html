@@ -261,9 +261,17 @@
         <fieldset class="field option-field">
           <legend>Faction interest <strong>*</strong></legend>
           <small>You can choose both if you are open to either side.</small>
-          <div class="choice-row">
-            <label><input type="checkbox" name="factions" value="jedi" /> Jedi Order</label>
-            <label><input type="checkbox" name="factions" value="sith" /> Sith Empire</label>
+          <div class="choice-row faction-choice-row">
+            <label class="faction-pick jedi-pick">
+              <input type="checkbox" name="factions" value="jedi" />
+              <img src="assets/logos/jedi-order-blue.png" alt="" />
+              <span>Jedi Order</span>
+            </label>
+            <label class="faction-pick sith-pick">
+              <input type="checkbox" name="factions" value="sith" />
+              <img src="assets/logos/sith-empire-red.png" alt="" />
+              <span>Sith Empire</span>
+            </label>
           </div>
         </fieldset>
 

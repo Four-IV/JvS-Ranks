@@ -944,11 +944,56 @@ body.modal-open {
 
 .option-field,
 .role-group {
+  position: relative;
+  overflow: hidden;
   margin: 0;
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.03);
+}
+
+.option-field::before,
+.role-group::before,
+.role-answer-card::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background-image: url("assets/ui/swtor-small-panel.png");
+  background-repeat: no-repeat;
+  background-position: right -42px bottom -54px;
+  background-size: 280px auto;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.role-group-jedi {
+  border-color: rgba(84, 216, 255, 0.5);
+  background:
+    linear-gradient(135deg, rgba(84, 216, 255, 0.13), transparent 64%),
+    rgba(255, 255, 255, 0.03);
+}
+
+.role-group-sith {
+  border-color: rgba(255, 64, 88, 0.5);
+  background:
+    linear-gradient(135deg, rgba(255, 64, 88, 0.13), transparent 64%),
+    rgba(255, 255, 255, 0.03);
+}
+
+.role-group legend {
+  display: grid;
+  gap: 4px;
+}
+
+.role-group legend span {
+  color: var(--text);
+  font-weight: 900;
+}
+
+.role-group legend small {
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .choice-row {
@@ -967,6 +1012,83 @@ body.modal-open {
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
+}
+
+.faction-choice-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.choice-row .faction-pick {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 12px;
+  min-height: 74px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.faction-pick::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  opacity: 0;
+  transition: opacity 160ms ease;
+  pointer-events: none;
+}
+
+.jedi-pick::before {
+  background: linear-gradient(135deg, rgba(84, 216, 255, 0.22), transparent 70%);
+}
+
+.sith-pick::before {
+  background: linear-gradient(135deg, rgba(255, 64, 88, 0.22), transparent 70%);
+}
+
+.faction-pick:has(input:checked)::before {
+  opacity: 1;
+}
+
+.faction-pick input {
+  position: absolute;
+  opacity: 0;
+}
+
+.faction-pick img,
+.faction-pick span {
+  position: relative;
+  z-index: 1;
+}
+
+.faction-pick img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+.faction-pick span {
+  font-size: 1.08rem;
+  font-weight: 900;
+}
+
+.jedi-pick {
+  color: var(--jedi);
+}
+
+.sith-pick {
+  color: var(--sith);
+}
+
+.jedi-pick:has(input:checked) {
+  border-color: var(--jedi);
+  box-shadow: inset 0 0 22px rgba(84, 216, 255, 0.12);
+}
+
+.sith-pick:has(input:checked) {
+  border-color: var(--sith);
+  box-shadow: inset 0 0 22px rgba(255, 64, 88, 0.12);
 }
 
 .role-picker,
@@ -992,8 +1114,9 @@ body.modal-open {
 }
 
 .role-choice {
+  position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   gap: 6px 10px;
   align-items: start;
   padding: 12px;
@@ -1001,15 +1124,43 @@ body.modal-open {
   border-radius: var(--radius);
   background: rgba(4, 13, 21, 0.48);
   cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background-color 160ms ease;
 }
 
 .role-choice input {
-  margin-top: 3px;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  background: rgba(1, 7, 13, 0.82);
+}
+
+.role-choice input::before {
+  width: 10px;
+  height: 10px;
+  content: "";
+  background: currentColor;
+  transform: scale(0);
+  transition: transform 140ms ease;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.role-choice input:checked::before {
+  transform: scale(1);
 }
 
 .role-choice span,
 .role-choice small {
   grid-column: 2;
+}
+
+.role-choice span {
+  font-weight: 900;
 }
 
 .role-choice:has(input:checked) {
@@ -1019,7 +1170,31 @@ body.modal-open {
     rgba(4, 13, 21, 0.58);
 }
 
+.role-choice:hover {
+  transform: translateY(-1px);
+}
+
+.role-choice-jedi {
+  color: var(--jedi);
+}
+
+.role-choice-sith {
+  color: var(--sith);
+}
+
+.role-choice-jedi:has(input:checked) {
+  border-color: var(--jedi);
+  box-shadow: inset 0 0 22px rgba(84, 216, 255, 0.13), 0 0 24px rgba(84, 216, 255, 0.08);
+}
+
+.role-choice-sith:has(input:checked) {
+  border-color: var(--sith);
+  box-shadow: inset 0 0 22px rgba(255, 64, 88, 0.13), 0 0 24px rgba(255, 64, 88, 0.08);
+}
+
 .role-answer-card {
+  position: relative;
+  overflow: hidden;
   display: grid;
   gap: 12px;
   padding: 14px;
@@ -1099,6 +1274,10 @@ body.modal-open {
   }
 
   .recruitment-note {
+    grid-template-columns: 1fr;
+  }
+
+  .faction-choice-row {
     grid-template-columns: 1fr;
   }
 
