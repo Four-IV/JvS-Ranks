@@ -46,6 +46,11 @@ const clearanceInfo = [
   }
 ];
 
+const APPLICATION_ENDPOINT = "https://wg-jvs-applications.iv-467.workers.dev/";
+const TURNSTILE_SITE_KEY = "0x4AAAAAADR0OpKVMvlte8Oe";
+const APPLICATION_COOLDOWN_MS = 10 * 60 * 1000;
+const MAX_SELECTED_ROLES = 8;
+
 const tierLabels = {
   "CL-0": "Training rank",
   "CL-1": "Padawan / Apprentice",
@@ -174,12 +179,18 @@ const factionData = {
           "Respond to active threats where direct combat strength is required."
         ],
         focus: ["Defense", "Leadership", "Front line", "Saber forms"],
-        ranks: standardRanks(
-          ["Squire", "Guardian Aspirant", "Guardian Vanguard"],
-          ["Paragon", "Guardian Defender", "High Guardian"],
-          ["Weapon Master", "Battlemaster", "Paladin"],
-          "Guardian SFL"
-        )
+        ranks: [
+          role("Squire", "CL-1"),
+          role("Guardian Aspirant", "CL-1"),
+          role("Guardian", "CL-1"),
+          role("Vanguard", "CL-2"),
+          role("Paragon", "CL-2"),
+          role("Guardian Defender", "CL-2"),
+          role("High Guardian", "CL-3"),
+          role("Weapon Master", "CL-3"),
+          role("Battlemaster", "CL-3"),
+          role("Paladin", "CL-5", "Subfaction Lead")
+        ]
       },
       {
         name: "Sentinels",
@@ -458,6 +469,14 @@ const baseRankTable = document.querySelector("#baseRankTable");
 const clearanceList = document.querySelector("#clearanceList");
 const leadershipList = document.querySelector("#leadershipList");
 const subfactionList = document.querySelector("#subfactionList");
+const applicationModal = document.querySelector("#applicationModal");
+const applicationForm = document.querySelector("#applicationForm");
+const roleInterestSections = document.querySelector("#roleInterestSections");
+const roleQuestionSections = document.querySelector("#roleQuestionSections");
+const applicationStatus = document.querySelector("#applicationStatus");
+const turnstileMount = document.querySelector("#turnstileMount");
+
+let turnstileWidgetId = null;
 
 init();
 
@@ -479,6 +498,28 @@ function bindEvents() {
   themeToggle.addEventListener("change", () => {
     applyTheme(themeToggle.checked ? "light" : "dark");
   });
+
+  document.querySelectorAll("[data-open-application]").forEach((button) => {
+    button.addEventListener("click", openApplicationModal);
+  });
+
+  document.querySelectorAll("[data-close-application]").forEach((button) => {
+    button.addEventListener("click", closeApplicationModal);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && applicationModal.classList.contains("open")) {
+      closeApplicationModal();
+    }
+  });
+
+  applicationForm.addEventListener("change", (event) => {
+    if (event.target.name === "factions" || event.target.name === "roles") {
+      renderApplicationRoles();
+    }
+  });
+
+  applicationForm.addEventListener("submit", submitApplication);
 }
 
 function applyTheme(theme) {
@@ -522,22 +563,38 @@ function factionRolesTemplate(faction) {
   return `
     <div class="leadership-grid">
       ${faction.factionRoles
-          .map(
-            (item) => `
-              <details class="leadership-card ${item.priority ? "priority-role" : ""}">
-                <summary>
-                  <span>
-                    <h3>${item.name}</h3>
-                    <p>${item.summary}</p>
-                  </span>
-                  ${item.priority ? `<span class="priority-key">Priority</span>` : ""}
-                </summary>
-                ${item.duties ? `<ul>${item.duties.map((duty) => `<li>${duty}</li>`).join("")}</ul>` : ""}
-              </details>
-            `
-          )
+          .map(leadershipCardTemplate)
           .join("")}
     </div>
+  `;
+}
+
+function leadershipCardTemplate(item) {
+  const priority = item.priority ? `<span class="priority-key">Priority</span>` : "";
+
+  if (!item.duties) {
+    return `
+      <article class="leadership-card no-expand ${item.priority ? "priority-role" : ""}">
+        <span>
+          <h3>${item.name}</h3>
+          <p>${item.summary}</p>
+        </span>
+        ${priority}
+      </article>
+    `;
+  }
+
+  return `
+    <details class="leadership-card ${item.priority ? "priority-role" : ""}">
+      <summary>
+        <span>
+          <h3>${item.name}</h3>
+          <p>${item.summary}</p>
+        </span>
+        ${priority}
+      </summary>
+      <ul>${item.duties.map((duty) => `<li>${duty}</li>`).join("")}</ul>
+    </details>
   `;
 }
 
@@ -621,4 +678,329 @@ function role(name, clearance, tier = tierLabels[clearance]) {
 
 function commandClass(clearance) {
   return Number(clearance.replace("CL-", "")) >= 5 || clearance === "CL-4" ? "command" : "";
+}
+
+function openApplicationModal() {
+  renderApplicationRoles();
+  applicationModal.classList.add("open");
+  applicationModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+  loadTurnstile();
+  applicationForm.querySelector("input[name='discordUsername']").focus();
+}
+
+function closeApplicationModal() {
+  applicationModal.classList.remove("open");
+  applicationModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+}
+
+function renderApplicationRoles() {
+  const selectedFactions = getCheckedValues("factions");
+  const selectedRoleIds = new Set(getCheckedValues("roles"));
+  const roleAnswers = getRoleAnswerDrafts();
+
+  roleInterestSections.hidden = selectedFactions.length === 0;
+  roleQuestionSections.hidden = selectedRoleIds.size === 0;
+
+  if (!selectedFactions.length) {
+    roleInterestSections.innerHTML = "";
+    roleQuestionSections.innerHTML = "";
+    roleInterestSections.hidden = true;
+    roleQuestionSections.hidden = true;
+    return;
+  }
+
+  const groups = applicationRoleGroups().filter((group) => selectedFactions.includes(group.faction));
+  const validRoleIds = new Set(groups.flatMap((group) => group.options.map((option) => option.id)));
+  const limitedSelected = [...selectedRoleIds].filter((id) => validRoleIds.has(id)).slice(0, MAX_SELECTED_ROLES);
+
+  roleInterestSections.innerHTML = `
+    <div class="role-picker-head">
+      <h3>Roles you are interested in <strong>*</strong></h3>
+      <small>Select up to ${MAX_SELECTED_ROLES}. Separate groups make it easier to pick realistic roles.</small>
+    </div>
+    ${groups.map((group) => roleGroupTemplate(group, limitedSelected)).join("")}
+  `;
+
+  roleQuestionSections.innerHTML = limitedSelected.length
+    ? `
+      <div class="role-picker-head">
+        <h3>Role-specific answers</h3>
+        <small>These questions appear for each role you selected.</small>
+      </div>
+      ${limitedSelected.map((id) => roleQuestionTemplate(findApplicationRole(id), roleAnswers[id])).join("")}
+    `
+    : "";
+  roleQuestionSections.hidden = limitedSelected.length === 0;
+}
+
+function roleGroupTemplate(group, selectedRoleIds) {
+  return `
+    <fieldset class="field role-group">
+      <legend>${escapeHtml(group.title)}</legend>
+      <div class="role-choice-grid">
+        ${group.options
+          .map((option) => {
+            const checked = selectedRoleIds.includes(option.id) ? "checked" : "";
+            return `
+              <label class="role-choice">
+                <input type="checkbox" name="roles" value="${option.id}" ${checked} />
+                <span>${escapeHtml(option.label)}</span>
+                <small>${escapeHtml(option.detail)}</small>
+              </label>
+            `;
+          })
+          .join("")}
+      </div>
+    </fieldset>
+  `;
+}
+
+function roleQuestionTemplate(roleOption, answers = {}) {
+  if (!roleOption) {
+    return "";
+  }
+
+  return `
+    <section class="role-answer-card" data-role-id="${roleOption.id}">
+      <h4>${escapeHtml(roleOption.label)}</h4>
+      <label class="field">
+        <span>Why do you wish to be ${escapeHtml(roleOption.label)}? <strong>*</strong></span>
+        <textarea name="why_${roleOption.id}" required maxlength="1800" rows="3">${escapeHtml(answers.why || "")}</textarea>
+      </label>
+      <label class="field">
+        <span>What can you bring to ${escapeHtml(roleOption.label)}? <strong>*</strong></span>
+        <textarea name="bring_${roleOption.id}" required maxlength="1800" rows="3">${escapeHtml(answers.bring || "")}</textarea>
+      </label>
+    </section>
+  `;
+}
+
+function applicationRoleGroups() {
+  return Object.entries(factionData).flatMap(([factionKey, faction]) => {
+    const coreRoles = faction.factionRoles.slice(2, 5).map((item) => ({
+      id: roleId(factionKey, "core", item.name),
+      label: item.name,
+      detail: "Core faction rank",
+      faction: factionKey
+    }));
+
+    const commandRoles = faction.factionRoles.filter((item) => item.duties).map((item) => ({
+      id: roleId(factionKey, "command", item.name),
+      label: item.name,
+      detail: "Priority command role",
+      faction: factionKey
+    }));
+
+    const subfactions = faction.subfactions.map((item) => ({
+      id: roleId(factionKey, "subfaction", item.name),
+      label: item.name,
+      detail: "Subfaction member",
+      faction: factionKey
+    }));
+
+    const sflRoles = faction.subfactions.map((item) => {
+      const sflRank = item.ranks[item.ranks.length - 1];
+      return {
+        id: roleId(factionKey, "sfl", sflRank.name),
+        label: sflRank.name,
+        detail: `${item.name} SFL`,
+        faction: factionKey
+      };
+    });
+
+    return [
+      { faction: factionKey, title: `${faction.name} ranks`, options: coreRoles },
+      { faction: factionKey, title: `${faction.name} command`, options: commandRoles },
+      { faction: factionKey, title: `${faction.name} subfactions`, options: subfactions },
+      { faction: factionKey, title: `${faction.name} subfaction leads`, options: sflRoles }
+    ];
+  });
+}
+
+function findApplicationRole(id) {
+  return applicationRoleGroups()
+    .flatMap((group) => group.options)
+    .find((option) => option.id === id);
+}
+
+function roleId(faction, group, name) {
+  return `${faction}-${group}-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+}
+
+function getCheckedValues(name) {
+  return [...applicationForm.querySelectorAll(`input[name="${name}"]:checked`)].map((input) => input.value);
+}
+
+function getRoleAnswerDrafts() {
+  const drafts = {};
+
+  roleQuestionSections.querySelectorAll("[data-role-id]").forEach((card) => {
+    const id = card.dataset.roleId;
+    drafts[id] = {
+      why: card.querySelector(`[name="why_${id}"]`)?.value || "",
+      bring: card.querySelector(`[name="bring_${id}"]`)?.value || ""
+    };
+  });
+
+  return drafts;
+}
+
+async function submitApplication(event) {
+  event.preventDefault();
+  setApplicationStatus("");
+
+  const selectedFactions = getCheckedValues("factions");
+  const selectedRoleIds = getCheckedValues("roles");
+
+  if (!APPLICATION_ENDPOINT) {
+    setApplicationStatus("Application sending is not connected yet. Add your Cloudflare Worker URL to APPLICATION_ENDPOINT in script.js.", true);
+    return;
+  }
+
+  if (isOnCooldown()) {
+    setApplicationStatus("Please wait a few minutes before sending another application.", true);
+    return;
+  }
+
+  if (!selectedFactions.length) {
+    setApplicationStatus("Pick at least one faction.", true);
+    return;
+  }
+
+  if (!selectedRoleIds.length) {
+    setApplicationStatus("Pick at least one role.", true);
+    return;
+  }
+
+  if (selectedRoleIds.length > MAX_SELECTED_ROLES) {
+    setApplicationStatus(`Pick ${MAX_SELECTED_ROLES} roles or fewer.`, true);
+    return;
+  }
+
+  if (!applicationForm.reportValidity()) {
+    setApplicationStatus("Fill in the required fields marked with *.", true);
+    return;
+  }
+
+  const submitButton = applicationForm.querySelector("button[type='submit']");
+  submitButton.disabled = true;
+  setApplicationStatus("Sending application...");
+
+  try {
+    const payload = buildApplicationPayload(selectedFactions, selectedRoleIds);
+    const response = await fetch(APPLICATION_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Application failed to send.");
+    }
+
+    localStorage.setItem("wg-application-last-submit", String(Date.now()));
+    applicationForm.reset();
+    roleInterestSections.innerHTML = "";
+    roleQuestionSections.innerHTML = "";
+    roleInterestSections.hidden = true;
+    roleQuestionSections.hidden = true;
+    setApplicationStatus("Application sent. Staff will review it in Discord.");
+  } catch (error) {
+    setApplicationStatus(error.message || "Application failed to send.", true);
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+function buildApplicationPayload(factions, roleIds) {
+  const formData = new FormData(applicationForm);
+  const roles = roleIds.map((id) => findApplicationRole(id)).filter(Boolean);
+
+  return {
+    discordUsername: clean(formData.get("discordUsername")),
+    steamLink: clean(formData.get("steamLink")),
+    wgRanks: clean(formData.get("wgRanks")),
+    noxGenesisRanks: clean(formData.get("noxGenesisRanks")),
+    rpExperience: clean(formData.get("rpExperience")),
+    starWarsExperience: clean(formData.get("starWarsExperience")),
+    factions,
+    roles: roles.map((roleOption) => ({
+      id: roleOption.id,
+      label: roleOption.label,
+      detail: roleOption.detail,
+      faction: roleOption.faction
+    })),
+    roleAnswers: roles.map((roleOption) => ({
+      role: roleOption.label,
+      why: clean(formData.get(`why_${roleOption.id}`)),
+      bring: clean(formData.get(`bring_${roleOption.id}`))
+    })),
+    additionalInfo: clean(formData.get("additionalInfo")),
+    website: clean(formData.get("website")),
+    turnstileToken: window.turnstile && turnstileWidgetId !== null ? window.turnstile.getResponse(turnstileWidgetId) : "",
+    pageUrl: window.location.href,
+    submittedAt: new Date().toISOString()
+  };
+}
+
+function clean(value) {
+  return String(value || "").trim();
+}
+
+function isOnCooldown() {
+  const lastSubmit = Number(localStorage.getItem("wg-application-last-submit") || 0);
+  return lastSubmit && Date.now() - lastSubmit < APPLICATION_COOLDOWN_MS;
+}
+
+function setApplicationStatus(message, isError = false) {
+  applicationStatus.textContent = message;
+  applicationStatus.classList.toggle("error", isError);
+}
+
+function loadTurnstile() {
+  if (!TURNSTILE_SITE_KEY || turnstileWidgetId !== null) {
+    return;
+  }
+
+  turnstileMount.hidden = false;
+
+  const render = () => {
+    if (!window.turnstile || turnstileWidgetId !== null) {
+      return;
+    }
+
+    turnstileWidgetId = window.turnstile.render(turnstileMount, {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: root.dataset.theme === "light" ? "light" : "dark"
+    });
+  };
+
+  if (window.turnstile) {
+    render();
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+  script.async = true;
+  script.defer = true;
+  script.addEventListener("load", render);
+  document.head.appendChild(script);
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    };
+    return entities[char];
+  });
 }

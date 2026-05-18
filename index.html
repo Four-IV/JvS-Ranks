@@ -8,6 +8,32 @@
       name="description"
       content="Planned Jedi and Sith RP rank structure for the Werewolf Gaming JvS server."
     />
+    <meta name="theme-color" content="#08111d" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Werewolf Gaming" />
+    <meta property="og:title" content="Werewolf Gaming JvS RP Ranks" />
+    <meta
+      property="og:description"
+      content="Planned Jedi and Sith roleplay ranks, clearances, faction roles, subfactions, and recruitment focus for the WG JvS server."
+    />
+    <meta property="og:url" content="https://four-iv.github.io/JvS-Ranks/" />
+    <meta
+      property="og:image"
+      content="https://four-iv.github.io/JvS-Ranks/assets/brand/werewolf-banner.gif"
+    />
+    <meta property="og:image:alt" content="Werewolf Gaming Jedi versus Sith" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Werewolf Gaming JvS RP Ranks" />
+    <meta
+      name="twitter:description"
+      content="Planned Jedi and Sith roleplay ranks, clearances, faction roles, subfactions, and recruitment focus for the WG JvS server."
+    />
+    <meta
+      name="twitter:image"
+      content="https://four-iv.github.io/JvS-Ranks/assets/brand/werewolf-banner.gif"
+    />
+    <link rel="icon" type="image/png" href="assets/brand/werewolf-icon.png" />
+    <link rel="apple-touch-icon" href="assets/brand/werewolf-icon.png" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -45,6 +71,9 @@
               Sith command chains, clearance levels, subfaction
               responsibilities, and where each role sits in the hierarchy.
             </p>
+            <button class="apply-button hero-apply" type="button" data-open-application>
+              Apply for a role
+            </button>
           </div>
           <div class="hero-media" aria-label="Werewolf Jedi versus Sith banner">
             <img
@@ -143,6 +172,116 @@
           ></div>
         </section>
       </main>
+    </div>
+
+    <button class="floating-apply" type="button" data-open-application>
+      Apply
+    </button>
+
+    <div
+      id="applicationModal"
+      class="application-modal"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="applicationTitle"
+    >
+      <button
+        class="modal-backdrop"
+        type="button"
+        aria-label="Close application form"
+        data-close-application
+      ></button>
+
+      <form id="applicationForm" class="application-card" novalidate>
+        <div class="modal-head">
+          <span>
+            <p class="eyebrow">Werewolf Gaming recruitment</p>
+            <h2 id="applicationTitle">Role application</h2>
+          </span>
+          <button
+            class="icon-button"
+            type="button"
+            aria-label="Close application form"
+            data-close-application
+          >
+            &times;
+          </button>
+        </div>
+
+        <p class="form-intro">
+          Apply for Jedi, Sith, or both. Pick realistic roles, then add a short
+          answer for each role you select.
+        </p>
+
+        <input
+          class="website-field"
+          type="text"
+          name="website"
+          tabindex="-1"
+          autocomplete="off"
+          aria-hidden="true"
+        />
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Discord username <strong>*</strong></span>
+            <small>Use the username staff can actually DM or tag.</small>
+            <input name="discordUsername" type="text" required maxlength="80" />
+          </label>
+
+          <label class="field">
+            <span>Steam link <strong>*</strong></span>
+            <small>Paste your Steam profile URL, for example your custom profile link.</small>
+            <input name="steamLink" type="url" required maxlength="220" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Current and previous ranks on any [W-G] server <strong>*</strong></span>
+          <textarea name="wgRanks" required maxlength="1800" rows="3"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Current and previous ranks on any Noxifer or Genesis server <strong>*</strong></span>
+          <textarea name="noxGenesisRanks" required maxlength="1800" rows="3"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Previous MilitaryRP, CityRP, or JvS experience</span>
+          <textarea name="rpExperience" maxlength="1800" rows="3"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Star Wars game experience</span>
+          <small>SWTOR, Battlefront, Jedi games, or anything similar.</small>
+          <textarea name="starWarsExperience" maxlength="1800" rows="3"></textarea>
+        </label>
+
+        <fieldset class="field option-field">
+          <legend>Faction interest <strong>*</strong></legend>
+          <small>You can choose both if you are open to either side.</small>
+          <div class="choice-row">
+            <label><input type="checkbox" name="factions" value="jedi" /> Jedi Order</label>
+            <label><input type="checkbox" name="factions" value="sith" /> Sith Empire</label>
+          </div>
+        </fieldset>
+
+        <section id="roleInterestSections" class="role-picker" hidden></section>
+        <section id="roleQuestionSections" class="role-questions" hidden></section>
+
+        <label class="field">
+          <span>Additional information</span>
+          <textarea name="additionalInfo" maxlength="1800" rows="3"></textarea>
+        </label>
+
+        <div id="turnstileMount" class="turnstile-mount" hidden></div>
+
+        <div class="form-actions">
+          <p id="applicationStatus" class="form-status" role="status" aria-live="polite"></p>
+          <button class="apply-button" type="submit">Send application</button>
+        </div>
+      </form>
     </div>
 
     <script src="script.js"></script>
