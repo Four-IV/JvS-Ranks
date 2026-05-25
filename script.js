@@ -767,7 +767,10 @@ function roleGroupTemplate(group, selectedRoleIds) {
   return `
     <fieldset class="field role-group role-group-${group.faction} role-group-${group.kind}">
       <legend>
-        <span>${escapeHtml(group.title)}</span>
+        <span>
+          ${group.mark ? `<img src="${group.mark}" alt="" />` : ""}
+          ${escapeHtml(group.title)}
+        </span>
         <small>${escapeHtml(group.caption)}</small>
       </legend>
       <div class="role-choice-grid">
@@ -824,25 +827,23 @@ function applicationRoleGroups() {
       faction: factionKey
     }));
 
-    const branchRoles = faction.subfactions.flatMap((subfaction) =>
-      subfaction.ranks
-        .slice(0, -1)
+    const subfactionGroups = faction.subfactions.map((subfaction) => {
+      const options = subfaction.ranks
         .filter((rank) => rank.clearance !== "CL-1")
         .map((rank) => ({
           id: roleId(factionKey, subfaction.name, rank.name),
           label: rank.name,
-          detail: `${subfaction.name} · ${rank.clearance}`,
+          detail: rank.tier === "Subfaction Lead" ? "SFL" : `${rank.clearance} · ${rank.tier}`,
           faction: factionKey
-        }))
-    );
+        }));
 
-    const sflRoles = faction.subfactions.map((item) => {
-      const sflRank = item.ranks[item.ranks.length - 1];
       return {
-        id: roleId(factionKey, "sfl", sflRank.name),
-        label: sflRank.name,
-        detail: `${item.name} SFL`,
-        faction: factionKey
+        faction: factionKey,
+        kind: "subfaction",
+        title: subfaction.name,
+        caption: "Knight/Lord equivalent and above, including SFL.",
+        mark: subfaction.mark,
+        options
       };
     });
 
@@ -854,20 +855,7 @@ function applicationRoleGroups() {
         caption: factionKey === "jedi" ? "Knight and Master roles." : "Lord and Darth roles.",
         options: coreRoles
       },
-      {
-        faction: factionKey,
-        kind: "branch",
-        title: `${faction.name} branch ranks`,
-        caption: "Subfaction ranks from Knight/Lord equivalent upward.",
-        options: branchRoles
-      },
-      {
-        faction: factionKey,
-        kind: "sfl",
-        title: `${faction.name} subfaction leads`,
-        caption: "SFL positions for specialist branches.",
-        options: sflRoles
-      },
+      ...subfactionGroups,
       {
         faction: factionKey,
         kind: "command",

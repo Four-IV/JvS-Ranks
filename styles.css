@@ -1072,8 +1072,18 @@ body.modal-open {
 }
 
 .role-group legend span {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
   color: var(--text);
   font-weight: 900;
+}
+
+.role-group legend img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px currentColor);
 }
 
 .role-group legend small {
