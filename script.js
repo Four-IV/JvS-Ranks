@@ -46,7 +46,11 @@ const clearanceInfo = [
   }
 ];
 
-const APPLICATION_ENDPOINT = "https://wg-jvs-applications.iv-467.workers.dev/";
+const APPLICATION_ENDPOINTS = {
+  production: "https://wg-jvs-applications.iv-467.workers.dev/",
+  development: "https://wg-jvs-applications-dev.iv-467.workers.dev/"
+};
+const APPLICATION_ENDPOINT = resolveApplicationEndpoint();
 const TURNSTILE_SITE_KEY = "0x4AAAAAADR0OpKVMvlte8Oe";
 const APPLICATION_COOLDOWN_MS = 10 * 60 * 1000;
 const MAX_SELECTED_ROLES = 8;
@@ -481,6 +485,7 @@ let turnstileWidgetId = null;
 init();
 
 function init() {
+  root.dataset.appEnvironment = resolveApplicationEnvironment();
   applyTheme(localStorage.getItem("wg-theme") || "dark");
   renderPage();
   bindEvents();
@@ -678,6 +683,25 @@ function role(name, clearance, tier = tierLabels[clearance]) {
 
 function commandClass(clearance) {
   return Number(clearance.replace("CL-", "")) >= 5 || clearance === "CL-4" ? "command" : "";
+}
+
+function resolveApplicationEnvironment() {
+  const hostname = window.location.hostname.toLowerCase();
+
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".pages.dev") ||
+    hostname.includes("jvs-ranks-dev")
+  ) {
+    return "development";
+  }
+
+  return "production";
+}
+
+function resolveApplicationEndpoint() {
+  return APPLICATION_ENDPOINTS[resolveApplicationEnvironment()];
 }
 
 function openApplicationModal() {

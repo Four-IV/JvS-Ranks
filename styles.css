@@ -91,6 +91,24 @@ body.modal-open {
   overflow: hidden;
 }
 
+:root[data-app-environment="development"] body::before {
+  position: fixed;
+  right: 16px;
+  bottom: 92px;
+  z-index: 30;
+  padding: 8px 11px;
+  border: 1px solid rgba(245, 205, 112, 0.76);
+  border-radius: var(--radius);
+  color: var(--gold);
+  background: rgba(5, 14, 23, 0.9);
+  box-shadow: 0 0 24px rgba(245, 205, 112, 0.18);
+  content: "DEV PREVIEW";
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
 .site-shell {
   width: min(1160px, calc(100% - 28px));
   margin: 0 auto;
