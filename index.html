@@ -71,9 +71,26 @@
               Sith command chains, clearance levels, subfaction
               responsibilities, and where each role sits in the hierarchy.
             </p>
-            <button class="apply-button hero-apply" type="button" data-open-application>
-              Apply for a role
-            </button>
+            <div class="hero-actions">
+              <button class="apply-button hero-apply" type="button" data-open-application>
+                Apply for a role
+              </button>
+              <span>Applications are reviewed by staff in Discord.</span>
+            </div>
+            <dl class="hero-snapshot">
+              <div>
+                <dt>Factions</dt>
+                <dd>Jedi and Sith</dd>
+              </div>
+              <div>
+                <dt>Applications</dt>
+                <dd>Knight/Lord tier and above</dd>
+              </div>
+              <div>
+                <dt>Access</dt>
+                <dd>CL-0 through CL-8</dd>
+              </div>
+            </dl>
           </div>
           <div class="hero-media" aria-label="Werewolf Jedi versus Sith banner">
             <img
@@ -240,28 +257,28 @@
         <label class="field">
           <span>Previous in-game names or community names</span>
           <small>Any older names staff might know you by.</small>
-          <textarea name="knownNames" maxlength="900" rows="2"></textarea>
+          <textarea name="knownNames" maxlength="1200" rows="2"></textarea>
         </label>
 
         <label class="field">
           <span>Current and previous ranks on any [W-G] server <strong>*</strong></span>
-          <textarea name="wgRanks" required maxlength="1800" rows="3"></textarea>
+          <textarea name="wgRanks" required maxlength="3600" rows="4"></textarea>
         </label>
 
         <label class="field">
           <span>Current and previous ranks on any Noxifer or Genesis server <strong>*</strong></span>
-          <textarea name="noxGenesisRanks" required maxlength="1800" rows="3"></textarea>
+          <textarea name="noxGenesisRanks" required maxlength="3600" rows="4"></textarea>
         </label>
 
         <label class="field">
           <span>Previous MilitaryRP, CityRP, or JvS experience</span>
-          <textarea name="rpExperience" maxlength="1800" rows="3"></textarea>
+          <textarea name="rpExperience" maxlength="3600" rows="4"></textarea>
         </label>
 
         <label class="field">
           <span>Star Wars game experience</span>
           <small>SWTOR, Battlefront, Jedi games, or anything similar.</small>
-          <textarea name="starWarsExperience" maxlength="1800" rows="3"></textarea>
+          <textarea name="starWarsExperience" maxlength="3600" rows="4"></textarea>
         </label>
 
         <fieldset class="field option-field">
@@ -286,7 +303,7 @@
 
         <label class="field">
           <span>Additional information</span>
-          <textarea name="additionalInfo" maxlength="1800" rows="3"></textarea>
+          <textarea name="additionalInfo" maxlength="3600" rows="4"></textarea>
         </label>
 
         <div id="turnstileMount" class="turnstile-mount" hidden></div>

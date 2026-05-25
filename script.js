@@ -53,7 +53,11 @@ const APPLICATION_ENDPOINTS = {
 const APPLICATION_ENDPOINT = resolveApplicationEndpoint();
 const TURNSTILE_SITE_KEY = "0x4AAAAAADR0OpKVMvlte8Oe";
 const APPLICATION_COOLDOWN_MS = 10 * 60 * 1000;
-const MAX_SELECTED_ROLES = 8;
+const MAX_SELECTED_ROLES = 12;
+const GENERAL_TEXT_MAX = 3600;
+const ROLE_ANSWER_TEXT_MAX = 5400;
+const SHALLOW_ROLE_ANSWER_WORDS = 35;
+const SHALLOW_ROLE_ANSWER_CHARS = 180;
 
 const tierLabels = {
   "CL-0": "Training rank",
@@ -794,11 +798,11 @@ function roleQuestionTemplate(roleOption, answers = {}) {
       <h4>${escapeHtml(roleOption.label)}</h4>
       <label class="field">
         <span>Why do you wish to be ${escapeHtml(roleOption.label)}? <strong>*</strong></span>
-        <textarea name="why_${roleOption.id}" required maxlength="1800" rows="3">${escapeHtml(answers.why || "")}</textarea>
+        <textarea name="why_${roleOption.id}" required maxlength="${ROLE_ANSWER_TEXT_MAX}" rows="4">${escapeHtml(answers.why || "")}</textarea>
       </label>
       <label class="field">
         <span>What can you bring to ${escapeHtml(roleOption.label)}? <strong>*</strong></span>
-        <textarea name="bring_${roleOption.id}" required maxlength="1800" rows="3">${escapeHtml(answers.bring || "")}</textarea>
+        <textarea name="bring_${roleOption.id}" required maxlength="${ROLE_ANSWER_TEXT_MAX}" rows="4">${escapeHtml(answers.bring || "")}</textarea>
       </label>
     </section>
   `;
@@ -806,10 +810,10 @@ function roleQuestionTemplate(roleOption, answers = {}) {
 
 function applicationRoleGroups() {
   return Object.entries(factionData).flatMap(([factionKey, faction]) => {
-    const seniorRole = faction.factionRoles.slice(4, 5).map((item) => ({
+    const coreRoles = faction.factionRoles.slice(3, 5).map((item) => ({
       id: roleId(factionKey, "core", item.name),
       label: item.name,
-      detail: factionKey === "jedi" ? "Senior Jedi rank" : "Senior Sith rank",
+      detail: factionKey === "jedi" ? "Core Jedi rank" : "Core Sith rank",
       faction: factionKey
     }));
 
@@ -819,6 +823,18 @@ function applicationRoleGroups() {
       detail: item.priority ? "Priority command role" : "Command role",
       faction: factionKey
     }));
+
+    const branchRoles = faction.subfactions.flatMap((subfaction) =>
+      subfaction.ranks
+        .slice(0, -1)
+        .filter((rank) => rank.clearance !== "CL-1")
+        .map((rank) => ({
+          id: roleId(factionKey, subfaction.name, rank.name),
+          label: rank.name,
+          detail: `${subfaction.name} · ${rank.clearance}`,
+          faction: factionKey
+        }))
+    );
 
     const sflRoles = faction.subfactions.map((item) => {
       const sflRank = item.ranks[item.ranks.length - 1];
@@ -833,10 +849,17 @@ function applicationRoleGroups() {
     return [
       {
         faction: factionKey,
-        kind: "senior",
-        title: `${faction.name} senior rank`,
-        caption: factionKey === "jedi" ? "Master only from the core Jedi ladder." : "Darth only from the core Sith ladder.",
-        options: seniorRole
+        kind: "core",
+        title: `${faction.name} core ranks`,
+        caption: factionKey === "jedi" ? "Knight and Master roles." : "Lord and Darth roles.",
+        options: coreRoles
+      },
+      {
+        faction: factionKey,
+        kind: "branch",
+        title: `${faction.name} branch ranks`,
+        caption: "Subfaction ranks from Knight/Lord equivalent upward.",
+        options: branchRoles
       },
       {
         faction: factionKey,
@@ -921,6 +944,17 @@ async function submitApplication(event) {
     return;
   }
 
+  if (hasShallowRoleAnswers(selectedRoleIds)) {
+    const shouldSubmit = window.confirm(
+      "Some of your role answers look quite short. Staff will use these answers to judge whether the role is a good fit. Are you sure you want to submit?"
+    );
+
+    if (!shouldSubmit) {
+      setApplicationStatus("Add a bit more detail to your role answers, then submit again.", true);
+      return;
+    }
+  }
+
   const submitButton = applicationForm.querySelector("button[type='submit']");
   submitButton.disabled = true;
   setApplicationStatus("Sending application...");
@@ -983,6 +1017,19 @@ function buildApplicationPayload(factions, roleIds) {
     pageUrl: window.location.href,
     submittedAt: new Date().toISOString()
   };
+}
+
+function hasShallowRoleAnswers(roleIds) {
+  return roleIds.some((id) => {
+    const why = clean(applicationForm.elements[`why_${id}`]?.value);
+    const bring = clean(applicationForm.elements[`bring_${id}`]?.value);
+    return isShallowAnswer(why) || isShallowAnswer(bring);
+  });
+}
+
+function isShallowAnswer(value) {
+  const words = value.split(/\s+/).filter(Boolean).length;
+  return value.length < SHALLOW_ROLE_ANSWER_CHARS || words < SHALLOW_ROLE_ANSWER_WORDS;
 }
 
 function clean(value) {
