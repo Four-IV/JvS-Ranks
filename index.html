@@ -77,20 +77,6 @@
               </button>
               <span>Applications are reviewed by staff in Discord.</span>
             </div>
-            <dl class="hero-snapshot">
-              <div>
-                <dt>Factions</dt>
-                <dd>Jedi and Sith</dd>
-              </div>
-              <div>
-                <dt>Applications</dt>
-                <dd>Knight/Lord tier and above</dd>
-              </div>
-              <div>
-                <dt>Access</dt>
-                <dd>CL-0 through CL-8</dd>
-              </div>
-            </dl>
           </div>
           <div class="hero-media" aria-label="Werewolf Jedi versus Sith banner">
             <img
@@ -100,94 +86,100 @@
           </div>
         </section>
 
-        <section
-          class="faction-switch swtor-strip"
-          aria-label="Faction selector"
-        >
-          <button
-            class="faction-button active"
-            type="button"
-            data-faction-tab="jedi"
-            aria-pressed="true"
-          >
-            <img src="assets/logos/jedi-order-blue.png" alt="" />
-            <span>Jedi Order</span>
-          </button>
-          <button
-            class="faction-button"
-            type="button"
-            data-faction-tab="sith"
-            aria-pressed="false"
-          >
-            <img src="assets/logos/sith-empire-red.png" alt="" />
-            <span>Sith Empire</span>
-          </button>
-        </section>
+        <div class="manual-layout">
+          <aside class="control-rail" aria-label="Rank manual controls">
+            <section
+              class="faction-switch swtor-strip"
+              aria-label="Faction selector"
+            >
+              <button
+                class="faction-button active"
+                type="button"
+                data-faction-tab="jedi"
+                aria-pressed="true"
+              >
+                <img src="assets/logos/jedi-order-blue.png" alt="" />
+                <span>Jedi Order</span>
+              </button>
+              <button
+                class="faction-button"
+                type="button"
+                data-faction-tab="sith"
+                aria-pressed="false"
+              >
+                <img src="assets/logos/sith-empire-red.png" alt="" />
+                <span>Sith Empire</span>
+              </button>
+            </section>
 
-        <section class="recruitment-note">
-          <strong>Recruitment focus</strong>
-          <p>
-            We are looking to recruit for most roles. Roles marked with the
-            priority indicator are the ones we are most focused on filling.
-          </p>
-          <span class="priority-key">Priority role</span>
-        </section>
+            <section class="recruitment-note">
+              <strong>Recruitment focus</strong>
+              <p>
+                Most senior and specialist roles are open. Priority markers show
+                the roles staff are most actively trying to fill.
+              </p>
+              <span class="priority-key">Priority role</span>
+            </section>
+          </aside>
 
-        <section id="clearances" class="content-panel swtor-panel">
-          <div class="section-head">
-            <p class="eyebrow">Command access</p>
-            <h2>Clearance overview</h2>
-            <p>
-              Clearances describe access and authority, not just seniority. Open
-              a level below for the practical meaning behind it.
-            </p>
+          <div class="manual-content">
+            <section id="clearances" class="content-panel swtor-panel">
+              <div class="section-head">
+                <p class="eyebrow">Command access</p>
+                <h2>Clearance overview</h2>
+                <p>
+                  A quick reference for authority, access, and where each main
+                  rank sits in the faction structure.
+                </p>
+              </div>
+
+              <div
+                id="baseRankTable"
+                class="rank-table rank-table-main"
+                aria-live="polite"
+              ></div>
+
+              <details class="clearance-explainer">
+                <summary>Open clearance level notes</summary>
+                <div id="clearanceList" class="clearance-list"></div>
+              </details>
+            </section>
+
+            <section id="faction-roles" class="content-panel swtor-panel">
+              <div class="section-head">
+                <p class="eyebrow">Faction chain</p>
+                <h2>Faction roles</h2>
+                <p>
+                  Core ranks, command expectations, and what the senior faction
+                  roles are responsible for in roleplay.
+                </p>
+              </div>
+
+              <div
+                id="leadershipList"
+                class="leadership-list"
+                aria-live="polite"
+              ></div>
+            </section>
+
+            <section id="subfactions" class="content-panel swtor-panel">
+              <div class="section-head">
+                <p class="eyebrow">Specialist branches</p>
+                <h2>Subfactions</h2>
+                <p>
+                  Branch responsibilities, day-to-day duties, focus areas, and
+                  the full rank ladder with clearance levels.
+                </p>
+              </div>
+
+              <div
+                id="subfactionList"
+                class="subfaction-list"
+                aria-live="polite"
+              ></div>
+            </section>
           </div>
-
-          <div
-            id="baseRankTable"
-            class="rank-table rank-table-main"
-            aria-live="polite"
-          ></div>
-
-          <details class="clearance-explainer">
-            <summary>Open clearance level notes</summary>
-            <div id="clearanceList" class="clearance-list"></div>
-          </details>
-        </section>
-
-        <section id="faction-roles" class="content-panel swtor-panel">
-          <div class="section-head">
-            <p class="eyebrow">Faction chain</p>
-            <h2>Faction roles</h2>
-            <p>
-              The core faction ranks, what they represent in RP, and what the
-              higher command roles are expected to handle.
-            </p>
-          </div>
-
-          <div
-            id="leadershipList"
-            class="leadership-list"
-            aria-live="polite"
-          ></div>
-        </section>
-
-        <section id="subfactions" class="content-panel swtor-panel">
-          <div class="section-head">
-            <p class="eyebrow">Specialist branches</p>
-            <h2>Subfactions</h2>
-            <p>
-              Each branch expands into its purpose, focus, day-to-day duties,
-              and the full rank ladder with clearance levels.
-            </p>
-          </div>
-
-          <div
-            id="subfactionList"
-            class="subfaction-list"
-            aria-live="polite"
-          ></div>
-        </section>
+        </div>
       </main>
     </div>
 
