@@ -459,7 +459,7 @@ const factionData = {
         ],
         focus: ["Rituals", "Alchemy", "Force power", "Support"],
         ranks: standardRanks(
-          ["Mystic", "Initiate", "Mystic Seer"],
+          ["Mystic", "Sorcerer Initiate", "Mystic Seer"],
           ["Sorcerer", "Corruptor", "Ritualist"],
           ["Warlock", "Sith Alchemist", "Arch-Sorcerer"],
           "Dark Magister"
